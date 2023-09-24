@@ -1,11 +1,12 @@
 
 resource "aws_instance" "test-web" {
+  count                  = var.instance_count
   ami                    = var.AMIS[var.REGION]
-  instance_type          = "t2.micro"
+  instance_type          = var.instance_type
   subnet_id              = aws_subnet.test-public-1.id
   vpc_security_group_ids = [aws_security_group.test-poc-security.id]
   tags = {
-    Name = "my-test-web"
+    Name = "my-test-web-${count.index + 1}"
   }
 }
 
@@ -18,11 +19,12 @@ resource "aws_ebs_volume" "test-volume" {
 }
 
 resource "aws_volume_attachment" "test-volume-attach" {
+  count = var.count_attachment
   device_name = "/dev/xvdh"
   volume_id   = aws_ebs_volume.test-volume.id
-  instance_id = aws_instance.test-web.id
+  instance_id = aws_instance.test-web[count.index].id
 }
 
-output "PublicIP" {
-  value = aws_instance.test-web.public_ip
-}
+# output "PublicIP" {
+#   value = aws_instance.test-web[count.index].public_ip
+# }
